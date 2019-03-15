@@ -16,5 +16,5 @@ function normalizePort(val) {
 }
 
 server.on('listening', () => {
-  console.log('server is listening for request on port 3000');
+  console.log(`server is listening for request on port ${server.address().port}`);
 })
