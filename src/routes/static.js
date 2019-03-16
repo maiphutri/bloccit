@@ -1,8 +1,7 @@
-const express = require('express'),
-      router  = express.Router();
+const express          = require('express'),
+      router           = express.Router(),
+      staticController = require("../controllers/staticController.js");
 
-router.get('/', (req, res, next) => {
-  res.send("Welcome to Bloccit");
-});
+router.get("/", staticController.index);
 
 module.exports = router;
