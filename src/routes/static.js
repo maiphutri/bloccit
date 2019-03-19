@@ -3,5 +3,6 @@ const express          = require('express'),
       staticController = require("../controllers/staticController.js");
 
 router.get("/", staticController.index);
+router.get("/about", staticController.about);
 
 module.exports = router;
