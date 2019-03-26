@@ -1,5 +1,5 @@
 const sequelize = require("../../src/db/models/index").sequelize,
-      Topics    = require("../../src/db/models").Topics,
+      Topic    = require("../../src/db/models").Topic,
       Post      = require("../../src/db/models").Post;
 
 describe("Post", () => {
@@ -8,7 +8,7 @@ describe("Post", () => {
     this.topic;
     this.post;
     sequelize.sync({force: true}).then((res) => {
-      Topics.create({
+      Topic.create({
         title: "Expeditions to Alpha Centauri",
         description: "A compilation of reports from recent visits to the star system."
       })
@@ -68,7 +68,7 @@ describe("Post", () => {
   describe("#setTopic()", () => {
 
     it("should associate a topic and post together", (done) => {
-      Topics.create({
+      Topic.create({
         title: "Challenges of interstellar travel",
         description: "1. The Wi-Fi is terrible"
       })

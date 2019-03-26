@@ -2,7 +2,7 @@ const request   = require('request'),
       server    = require("../../src/server.js"),
       base      = "http://localhost:3000/topics/",
       sequelize = require("../../src/db/models/index").sequelize,
-      Topics    = require("../../src/db/models").Topics;
+      Topic    = require("../../src/db/models").Topic;
 
 describe("routes : topics", () => {
 
@@ -10,7 +10,7 @@ describe("routes : topics", () => {
     this.topic;
     sequelize.sync({force: true}).then((res) => {
 
-      Topics.create({
+      Topic.create({
         title: "JS Frameworks",
         description: "There is a lot of them"
       })
@@ -61,7 +61,7 @@ describe("routes : topics", () => {
     it('should create a new topic and redirect', (done) => {
       request.post(options,
         (err, res, body) => {
-          Topics.findOne({where: {title: "blink-182 songs"}})
+          Topic.findOne({where: {title: "blink-182 songs"}})
           .then((topic) => {
             expect(res.statusCode).toBe(303);
             expect(topic.title).toBe("blink-182 songs");
@@ -91,12 +91,12 @@ describe("routes : topics", () => {
   describe("POST /topics/:id/destroy", () => {
 
     it("should delete the topic with the associated ID", (done) => {
-      Topics.findAll().then((topics) => {
+      Topic.findAll().then((topics) => {
         const topicCountBeforeDelete = topics.length;
         expect(topicCountBeforeDelete).toBe(1);
 
         request.post(`${base}${this.topic.id}/destroy`, (err, res, body) => {
-          Topics.findAll().then((topics) => {
+          Topic.findAll().then((topics) => {
             expect(err).toBeNull();
             expect(topics.length).toBe(topicCountBeforeDelete - 1);
             done();
@@ -132,7 +132,7 @@ describe("routes : topics", () => {
       request.post(options,
         (err, res, body) => {
           expect(err).toBeNull();
-          Topics.findOne({
+          Topic.findOne({
             where: { id: this.topic.id }
           })
           .then((topic) => {

@@ -1,15 +1,4 @@
 'use strict';
-const faker = require('faker');
-let topics = [];
-
-for(let i = 1; i <= 15; i++) {
-  topics.push({
-    title: faker.hacker.noun(),
-    description: faker.hacker.phrase(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-}
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -23,7 +12,12 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    return queryInterface.bulkInsert("Topics", topics, {});
+    return queryInterface.bulkInsert("Topic", [{
+      title: "Pack",
+      description: "dfsdf",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }],{});
   },
 
   down: (queryInterface, Sequelize) => {
@@ -34,6 +28,6 @@ module.exports = {
       Example:
       return queryInterface.bulkDelete('People', null, {});
     */
-    return queryInterface.bulkDelete("Topics", null, {});
+    return queryInterface.bulkDelete('Topic', null, {});
   }
 };

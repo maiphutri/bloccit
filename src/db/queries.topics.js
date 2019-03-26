@@ -1,17 +1,18 @@
-const Topics = require("./models").Topics;
+const Topic  = require("./models").Topic,
+      Post   = require("./models").Post;
 
 module.exports = {
   getAllTopics(callback) {
-    return Topics.findAll().then((topics) => {
+    return Topic.findAll().then((topics) => {
       callback(null, topics);
     })
     .catch((err) => {
-      callback(err);
+      console.log(err);
     })
   },
 
   addTopic(newTopic, callback) {
-    return Topics.create({
+    return Topic.create({
       title: newTopic.title,
       description: newTopic.description
     })
@@ -24,16 +25,22 @@ module.exports = {
   },
 
   getTopic(id, callback) {
-    return Topics.findByPk(id).then((topic) => {
+    return Topic.findByPk(id, {
+      include: [{
+        model: Post,
+        as: 'posts'
+      }]
+    })
+    .then((topic) => {
       callback(null, topic);
     })
     .catch((err) => {
-      callback(err);
+      console.log(err);
     })
   },
 
   deleteTopic(id, callback) {
-    return Topics.destroy({
+    return Topic.destroy({
       where: {id}
     })
     .then((topic) => {
@@ -45,7 +52,7 @@ module.exports = {
   },
 
   updateTopic(id, updatedTopic, callback) {
-    return Topics.findByPk(id)
+    return Topic.findByPk(id)
     .then((topic) => {
       if (!topic) {
         return callback("Topic not found");

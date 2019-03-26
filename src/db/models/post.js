@@ -13,13 +13,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     }
-  },{});
+  }, {});
   Post.associate = function(models) {
     // associations can be defined here
-    Post.belongsTo(models.Topics, {
-      foreignKey: 'topicId',
+    Post.belongsTo(models.Topic, {
+      foreignKey: "topicId",
       onDelete: "CASCADE"
-    })
+    });
   };
   return Post;
 };
