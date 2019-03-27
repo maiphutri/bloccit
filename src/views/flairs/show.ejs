@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ../static/partials/head.ejs %>
+</head>
+<body>
+  <% include ../static/partials/navbar.ejs %>
+
+  <main class='container'>
+    <h1>Flair: <span style="color: <%= flair.color %>" ><%= flair.name %></span></h1>
+    <a class="btn btn-warning" href="/topics/<%= flair.topicId %>/flairs/<%= flair.id %>/edit">Edit</a>
+    <form style="display:initial" action="/topics/<%= flair.topicId %>/flairs/<%= flair.id %>/destroy" method="post">
+      <button type='submit' class='btn btn-danger'>Delete</button>
+    </form>
+
+    <h2>Posts</h2>
+
+    <ul class=list-group>
+      <% flair.posts.forEach(post => { %>
+        <li class="list-group-item">
+          <a href="/topics/<%= flair.topicId %>/posts/<%= post.id %>"><%= post.title %></a>
+        </li>
+      <% }) %>
+    </ul>
+  </main>
+  
+  <% include ../static/partials/baseScripts.ejs %>
+</body>
+</html>

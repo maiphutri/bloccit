@@ -3,35 +3,48 @@ const request   = require('request'),
       base      = "http://localhost:3000/topics/",
       sequelize = require("../../src/db/models/index").sequelize,
       Topic     = require("../../src/db/models").Topic,
-      Post      = require("../../src/db/models").Post;
+      Post      = require("../../src/db/models").Post,
+      Flair     = require("../../src/db/models").Flair;
 
 describe("routes : posts", () => {
+  
   beforeEach((done) => {
     this.topic;
     this.post;
+    this.flair;
 
     sequelize.sync({force: true}).then((res) => {
       Topic.create({
-        title: "Winter Games",
-        description: "Post your Winter Games stories."
+        title: "Expeditions to Alpha Centauri",
+        description: "A compilation of reports from recent visits to the star system."
       })
-      .then((topic) => {
+      .then(topic => {
         this.topic = topic;
-
-        Post.create({
-          title: "Snowball Fighting",
-          body: "So much snow",
+        
+        Flair.create({
+          name: "Misc",
+          color: "grey",
           topicId: this.topic.id
         })
-        .then((post) => {
-          this.post = post;
-          done();
+        .then(flair => {
+          this.flair = flair;
+
+          Post.create({
+            title: "My first visit to Proxima Centauri b",
+            body: "I saw some rocks.",
+            topicId: this.topic.id,
+            flairId: this.flair.id
+          })
+          .then(post => {
+            this.post = post;
+            done()
+          })
+          .catch(err => {
+            console.log(err);
+            done();
+          })
         })
-        .catch((err) => {
-          console.log(err);
-          done();
-        });
-      });
+      })
     });
   });
 
@@ -55,7 +68,9 @@ describe("routes : posts", () => {
         url: `${base}${this.topic.id}/posts/create`,
         form: {
           title: "Watching snow melt",
-          body: "Without a doubt my favoriting things to do besides watching paint dry!"
+          body: "Without a doubt my favoriting things to do besides watching paint dry!",
+          flairId: this.flair.id,
+          topicId: this.topic.id
         }
       };
 
@@ -66,6 +81,7 @@ describe("routes : posts", () => {
             expect(post.title).toBe("Watching snow melt");
             expect(post.body).toBe("Without a doubt my favoriting things to do besides watching paint dry!");
             expect(post.topicId).not.toBeNull();
+            expect(post.flairId).not.toBeNull();
             done();
           })
           .catch(err => {
@@ -83,7 +99,7 @@ describe("routes : posts", () => {
       request.get(`${base}${this.topic.id}/posts/${this.post.id}`,
         (err, res, body) => {
           expect(err).toBeNull();
-          expect(body).toContain("Snowball Fighting");
+          expect(body).toContain("My first visit to Proxima Centauri b");
           done();
         }
       )
@@ -113,7 +129,7 @@ describe("routes : posts", () => {
         (err, res, body) => {
           expect(err).toBeNull();
           expect(body).toContain("Edit Post");
-          expect(body).toContain("Snowball Fighting");
+          expect(body).toContain("My first visit to Proxima Centauri b");
           done();
         }
       )

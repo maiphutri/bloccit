@@ -1,5 +1,5 @@
-const Topic = require("./models").Topic,
-      Post   = require("./models").Post;
+const Post  = require("./models").Post,
+      Flair = require("./models").Flair;
 
 module.exports = {
   addPost(newPost, callback) {
@@ -12,11 +12,17 @@ module.exports = {
   },
   
   getPost(id, callback) {
-    return Post.findByPk(id).then(post => {
-        callback(null, post);
+    return Post.findByPk(id)
+    .then(post => {
+        Flair.findByPk(post.flairId).then(flair => {
+            callback(null, post, flair);
+        })
+        .catch(err => {
+            console.log(err);
+        })
     })
     .catch(err => {
-        callback(err);
+        console.log(err);
     })
   },
 
