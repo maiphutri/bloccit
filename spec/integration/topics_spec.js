@@ -75,6 +75,29 @@ describe("routes : topics", () => {
         }
       )
     });
+
+    it("should not create a new topic that fail validations", (done) => {
+      const options = {
+        url: `${base}create`,
+        form: {
+          title: "a",
+          description: "b"
+        }
+      };
+
+      request.post(options,
+        (err, res, body) => {
+          Topic.findOne({ where: {title: "a"} }).then(topic => {
+            expect(topic).toBeNull();
+            done();
+          })
+          .catch(err => {
+            console.log(err);
+            done();
+          })
+        }
+      )
+    })
   });
 
   describe("GET /topics/:id", () => {
