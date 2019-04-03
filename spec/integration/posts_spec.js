@@ -3,28 +3,40 @@ const request   = require('request'),
       base      = "http://localhost:3000/topics/",
       sequelize = require("../../src/db/models/index").sequelize,
       Topic     = require("../../src/db/models").Topic,
-      Post      = require("../../src/db/models").Post;
+      Post      = require("../../src/db/models").Post,
+      User      = require("../../src/db/models").User;
 
 describe("routes : posts", () => {
   beforeEach((done) => {
     this.topic;
     this.post;
+    this.user;
 
     sequelize.sync({force: true}).then((res) => {
-      Topic.create({
-        title: "Winter Games",
-        description: "Post your Winter Games stories."
+      User.create({
+        email: "starman@tesla.com",
+        password: "Trekkie4lyfe"
       })
-      .then((topic) => {
-        this.topic = topic;
+      .then(user => {
+        this.user = user;
 
-        Post.create({
-          title: "Snowball Fighting",
-          body: "So much snow",
-          topicId: this.topic.id
+        Topic.create({
+          title: "Winter Games",
+          description: "Post your Winter Games stories.",
+          posts: [{
+            title: "Snowball Fighting",
+            body: "So much snow!",
+            userId: this.user.id
+          }]
+        }, {
+          include: {
+            model: Post,
+            as: "posts"
+          }
         })
-        .then((post) => {
-          this.post = post;
+        .then(topic => {
+          this.topic = topic;
+          this.post = topic.posts[0];
           done();
         })
         .catch((err) => {
