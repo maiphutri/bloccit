@@ -43,14 +43,13 @@ module.exports = {
   deleteTopic(req, callback) {
     return Topic.findByPk(req.params.id)
     .then((topic) => {
-      const authorizer = new Authorizer(req.user, topic).destroy();
-      if (authorizer){
+      const authorized = new Authorizer(req.user, topic).destroy();
+      if (authorized){
         topic.destroy().then(res => {
-          callback(null, topic);
+          callback(null, true, topic);
         })
       } else {
-        req.flash("notice", "You are not authorized to do that.")
-        callback(401);
+          callback(null, false, topic);
       }
     })
     .catch((err) => {
