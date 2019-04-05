@@ -18,9 +18,8 @@ module.exports = {
       const authorized = new Authorizer(req.user, comment).destroy();
 
       if (authorized) {
-        comment.destroy().then(() => {
-          callback(null, comment);
-        })
+        comment.destroy();
+        callback(null, comment);
       } else {
         req.flash("notice", "You are not authorized to do that.");
         callback(401);

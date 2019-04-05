@@ -127,8 +127,9 @@ describe("routes : comments", () => {
       request.get({
         url: "http://localhost:3000/auth/fake",
         form: {
-          role: "member",
-          userId: this.user.id
+          role: this.user.role,
+          userId: this.user.id,
+          email: this.user.email
         }
       }, (err, res, body) => {
         done();
@@ -181,7 +182,94 @@ describe("routes : comments", () => {
             }
           )
         })
+      });
+
+     
+    })
+  });
+   
+  describe("signed in user performing CRUD on other user's comments", () => {
+    
+    beforeEach(done => {
+      User.create({
+        email: "ada@example.com",
+        password: "123456"
+      })
+      .then(user => {
+        request.get({
+          url: "http://localhost:3000/auth/fake",
+          form: {
+            role: user.role,
+            userId: user.id,
+            email: user.email
+          }
+        }, (err, res, body) => {
+          done();
+        })
+      })
+    });
+
+    describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
+
+      it("should not delete the other user's comments ", (done) => {
+        Comment.findAll().then(comments => {
+          const commentCountBeforeDelete = comments.length;
+          expect(commentCountBeforeDelete).toBe(1);
+
+          request.post(`${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
+            (err, res, body) => {
+              Comment.findAll().then(comments => {
+                expect(err).toBeNull();
+                expect(comments.length).toBe(commentCountBeforeDelete);
+                done();
+              })
+            }
+          )
+        })
       })
     })
-  }); // end context for signed in user
+  });
+
+  describe("admin user performing CRUD actions for Comment", () => {
+
+    beforeEach(done => {
+      User.create({
+        email: "admin@example.com",
+        password: "123456",
+        role: "admin"
+      })
+      .then(user => {
+        request.get({
+          url: "http://localhost:3000/auth/fake",
+          form: {
+            role: user.role,
+            userId: user.id,
+            email: user.email
+          }
+        }, (err, res, body) => {
+          done();
+        })
+      });
+    });
+
+    describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
+
+      it("should delete any comments successfully", () => {
+        Comment.findAll().then(comments => {
+          const commentCountBeforeDelete = comments.length;
+          expect(commentCountBeforeDelete).toBe(1);
+          
+          request.post(`${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
+            (err, res, body) => {
+              Comment.findAll().then(comments => {
+                expect(err).toBeNull();
+                expect(comments.length).toBe(commentCountBeforeDelete - 1);
+                done();
+              })
+            }
+          )
+        })
+      })
+    })
+  })
 })
