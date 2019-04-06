@@ -40,7 +40,20 @@ describe("routes : vote", () => {
         .then(topic => {
           this.topic = topic;
           this.post = topic.posts[0];
-          done();
+
+          Vote.create({
+            value: 1,
+            postId: this.post.id,
+            userId: this.user.id
+          })
+          .then(vote => {
+            this.vote = vote;
+            done();
+          })
+          .catch(err => {
+            console.log(err);
+            done();
+          })
         })
         .catch(err => {
           console.log(err);
@@ -69,29 +82,28 @@ describe("routes : vote", () => {
 
     describe("GET /topics/:topicId/posts/:postId/votes/upvote", () => {
 
-      it("should not create a new note", (done) => {
+      it("should not create a new vote", (done) => {
         const options = {
           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`,
         };
 
-        request.get(options,
-          (err, res, body) => {
-            Vote.findOne({
-              where:{
-                userId: this.user.id,
-                postId: this.post.id
-              }
-            })
-            .then(vote => {
-              expect(vote).toBeNull();
-              done();
-            })
-            .catch(err => {
-              console.log(err);
-              done();
-            })
-          }
-        )
+        Vote.findAll().then(votes => {
+          const voteCountBeforeGuestVote = votes.length;
+
+          request.get(options,
+            (err, res, body) => {
+              Vote.findAll()
+              .then(votes => {
+                expect(votes.length).toBe(voteCountBeforeGuestVote);
+                done();
+              })
+              .catch(err => {
+                console.log(err);
+                done();
+              })
+            }
+          )
+        })
       })
     })
   }); //end context for guest user
@@ -141,11 +153,37 @@ describe("routes : vote", () => {
         )
       });
 
+      it("should not create more than one vote per user for a given post", (done) => {
+        const options = {
+          url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`
+        };
+
+        request.get(options,
+          (err, res, body) => {
+            Vote.findAll().then(votes => {
+              expect(votes.length).toBe(1);
+
+              request.get(options,
+                (err, res, body) => {
+                  Vote.findAll().then(votes => {
+                    expect(votes.length).toBe(1);
+                    done();
+                  })
+                }
+              )
+            })
+          }
+        )
+      });       
+    });
+
+    describe("GET /topics/:topicId/posts/:postId/votes/downvote", () => {
+
       it("should create an downvote", (done) => {
         const options = {
           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/downvote`
         };
-
+  
         request.get(options,
           (err, res, body) => {
             Vote.findOne({

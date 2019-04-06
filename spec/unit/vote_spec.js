@@ -31,7 +31,11 @@ describe("Vote", () => {
         }, {
           include: {
             model: Post,
-            as: "posts"
+            as: "posts",
+            include: {
+              model: Vote,
+              as: "votes"
+            }
           }
         })
         .then(topic => {
@@ -101,7 +105,22 @@ describe("Vote", () => {
         expect(err.message).toContain("Vote.postId cannot be null");
         done();
       })
-    })
+    });
+
+    it("should not create a vote with value of anything other than -1 or 1" , (done) => {
+      Vote.create({
+        value: 2,
+        postId: this.post.id,
+        userId: this.user.id
+      })
+      .then(vote => {
+        done();
+      })
+      .catch(err => {
+        expect(err.message).toContain("Validation isIn on value failed");
+        done();
+      })
+    });
   });
 
   describe("#setUser()", () => {
@@ -223,6 +242,91 @@ describe("Vote", () => {
       .catch(err => {
         console.log(err);
         done();
+      })
+    })
+  });
+
+  describe("#getPoints()", () => {
+
+    it("should return total vote's value on given post has accumulated", (done) => {
+      Vote.create({
+        value: 1,
+        userId: this.user.id,
+        postId: this.post.id
+      })
+      .then(vote => {
+        User.create({
+          email: "ada@yahoo.com",
+          password: "123456"
+        })
+        .then(user => {
+          Vote.create({
+            value: 1,
+            userId: user.id,
+            postId: this.post.id
+          })
+          .then(vote => {
+            Post.findByPk(this.post.id, {
+              include: [{
+                  model: Vote,
+                  as: "votes",
+              }]
+            })
+            .then(post => {
+              Vote.findAll().then(votes => {
+                const voteCountAccumulated = votes.map(v => { return v.value}).reduce((prev, next) => { return prev + next })
+                expect(post.getPoints()).toBe(voteCountAccumulated);
+                done();
+              })
+            })
+          })
+        })
+      })
+    })
+  });
+
+  describe("#hasUpvoteFor()", () => {
+
+    it("should return true if user has an upvote for the given post", (done) => {
+      Vote.create({
+        value: 1,
+        userId: this.user.id,
+        postId: this.post.id
+      })
+      .then(vote => {
+        Post.findByPk(this.post.id, {
+          include: [{
+              model: Vote,
+              as: "votes",
+          }]
+        })
+        .then(post => {
+          expect(post.hasUpvoteFor(this.user.id)).toBe(true);
+          done();
+        })
+      })
+    })
+  });
+
+  describe("#hasDownvoteFor()", () => {
+
+    it("should return true if user has an downvote for the given post", (done) => {
+      Vote.create({
+        value: -1,
+        userId: this.user.id,
+        postId: this.post.id
+      })
+      .then(vote => {
+        Post.findByPk(this.post.id, {
+          include: [{
+              model: Vote,
+              as: "votes",
+          }]
+        })
+        .then(post => {
+          expect(post.hasDownvoteFor(this.user.id)).toBe(true);
+          done();
+        })
       })
     })
   })
