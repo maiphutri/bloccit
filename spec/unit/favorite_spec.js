@@ -2,15 +2,15 @@ const sequelize = require("../../src/db/models/index").sequelize,
       Topic     = require("../../src/db/models").Topic,
       Post      = require("../../src/db/models").Post,
       User      = require("../../src/db/models").User,
-      Vote      = require("../../src/db/models").Vote;
+      Favorite  = require("../../src/db/models").Favorite;
 
-describe("Vote", () => {
+describe("Favorite", () => {
 
   beforeEach(done => {
     this.user;
-    this.post;
     this.topic;
-    this.vote;
+    this.post;
+    this.favorite;
 
     sequelize.sync({force: true}).then(res => {
       User.create({
@@ -53,16 +53,14 @@ describe("Vote", () => {
 
   describe("#create()", () => {
 
-    it("should create an upvote on a post for a user", (done) => {
-      Vote.create({
-        value: 1,
+    it("should create a favorite for a post on a user", (done) => {
+      Favorite.create({
         postId: this.post.id,
         userId: this.user.id
       })
-      .then(vote => {
-        expect(vote.value).toBe(1);
-        expect(vote.postId).toBe(this.post.id);
-        expect(vote.userId).toBe(this.user.id);
+      .then(favorite => {
+        expect(favorite.postId).toBe(this.post.id);
+        expect(favorite.userId).toBe(this.user.id);
         done();
       })
       .catch(err => {
@@ -71,34 +69,16 @@ describe("Vote", () => {
       })
     });
 
-    it("should create a downvote on a post for a user", (done) => {
-      Vote.create({
-        value: -1,
-        postId: this.post.id,
-        userId: this.user.id
+    it("should not create a favorite without assigned post or user", (done) => {
+      Favorite.create({
+        userId: null
       })
-      .then(vote => {
-        expect(vote.value).toBe(-1);
-        expect(vote.postId).toBe(this.post.id);
-        expect(vote.userId).toBe(this.user.id);
+      .then(favorite => {
         done();
       })
       .catch(err => {
-        console.log(err);
-        done();
-      })
-    });
-
-    it("should not create a vote without assigned post or user", (done) => {
-      Vote.create({
-        value: 1
-      })
-      .then(vote => {
-        done();
-      })
-      .catch(err => {
-        expect(err.message).toContain("Vote.userId cannot be null");
-        expect(err.message).toContain("Vote.postId cannot be null");
+        expect(err.message).toContain("Favorite.userId cannot be null");
+        expect(err.message).toContain("Favorite.postId cannot be null");
         done();
       })
     })
@@ -106,23 +86,22 @@ describe("Vote", () => {
 
   describe("#setUser()", () => {
 
-    it("should associate a vote and a user together", (done) => {
-      Vote.create({
-        value: -1,
+    it("should associate a favorite and a user together", (done) => {
+      Favorite.create({
         postId: this.post.id,
         userId: this.user.id
       })
-      .then(vote => {
-        this.vote = vote;
-        expect(vote.userId).toBe(this.user.id);
+      .then(favorite => {
+        this.favorite = favorite;
+        expect(favorite.userId).toBe(this.user.id);
 
         User.create({
           email: "bob@example.com",
           password: "password"
         })
         .then(newUser => {
-          this.vote.setUser(newUser).then(vote => {
-            expect(vote.userId).toBe(newUser.id);
+          this.favorite.setUser(newUser).then(favorite => {
+            expect(favorite.userId).toBe(newUser.id);
             done();
           })
           .catch(err => {
@@ -141,18 +120,21 @@ describe("Vote", () => {
       })
     })
   });
-  
+
   describe("#getUser()", () => {
 
     it("should return the associated user", (done) => {
-      Vote.create({
-        value: 1,
+      Favorite.create({
         userId: this.user.id,
         postId: this.post.id
       })
-      .then(vote => {
-        vote.getUser().then(user => {
+      .then(favorite => {
+        favorite.getUser().then(user => {
           expect(user.id).toBe(this.user.id);
+          done();
+        })
+        .catch(err => {
+          console.log(err);
           done();
         })
       })
@@ -164,16 +146,15 @@ describe("Vote", () => {
   });
 
   describe("#setPost()", () => {
-    
-    it("should associated a post and a vote together", (done) => {
-      Vote.create({
-        value: -1,
-         postId: this.post.id,
-         userId: this.user.id
+
+    it("should associate a favorite and a post together", (done) => {
+      Favorite.create({
+        postId: this.post.id,
+        userId: this.user.id
       })
-      .then(vote => {
-        this.vote = vote;
-        expect(vote.postId).toBe(this.post.id);
+      .then(favorite => {
+        this.favorite = favorite;
+        expect(this.favorite.postId).toBe(this.post.id);
 
         Post.create({
           title: "Dress code on Proxima b",
@@ -182,8 +163,8 @@ describe("Vote", () => {
           userId: this.user.id
         })
         .then(newPost => {
-          this.vote.setPost(newPost).then(vote => {
-            expect(vote.postId).toBe(newPost.id);
+          this.favorite.setPost(newPost).then(favorite => {
+            expect(favorite.postId).toBe(newPost.id);
             done();
           })
           .catch(err => {
@@ -204,15 +185,14 @@ describe("Vote", () => {
   });
 
   describe("#getPost()", () => {
-    
+
     it("should return the associated post", (done) => {
-      Vote.create({
-        value: 1,
+      Favorite.create({
         userId: this.user.id,
         postId: this.post.id
       })
-      .then(vote => {
-        vote.getPost().then(post => {
+      .then(favorite => {
+        favorite.getPost().then(post => {
           expect(post.id).toBe(this.post.id);
           done();
         })

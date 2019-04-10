@@ -2,7 +2,8 @@ const Topic     = require("./models").Topic,
       Post      = require("./models").Post,
       User      = require("./models").User,
       Comment   = require("./models").Comment,
-      Vote      = require("./models").Vote;
+      Vote      = require("./models").Vote,
+      Favorite  = require("./models").Favorite;
 
 module.exports = {
   addPost(newPost, callback) {
@@ -25,6 +26,9 @@ module.exports = {
         }, {
             model: Vote,
             as: "votes"
+        }, {
+            model: Favorite,
+            as: "favorites"
         }]
     }).then(post => {
         callback(null, post);
