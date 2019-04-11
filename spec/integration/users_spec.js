@@ -2,7 +2,10 @@ const request   = require('request'),
       server    = require('../../src/server'),
       base      = "http://localhost:3000/users/",
       User      = require("../../src/db/models").User,
-      sequelize = require("../../src/db/models/index").sequelize;
+      sequelize = require("../../src/db/models/index").sequelize,
+      Topic     = require("../../src/db/models").Topic,
+      Post      = require("../../src/db/models").Post,
+      Comment   = require("../../src/db/models").Comment;
 
 describe("routes : users", () => {
 
@@ -80,6 +83,59 @@ describe("routes : users", () => {
       request.get(`${base}sign_in`, (err, res, body) => {
         expect(err).toBeNull();
         expect(body).toContain("Sign in");
+        done();
+      })
+    })
+  });
+
+  describe("GET /users/:id", () => {
+
+    beforeEach(done => {
+      this.user;
+      this.comment;
+      this.post;
+      
+      User.create({
+        email: "starman@tesla.com",
+        password: "Trekkie4lyfe"
+      })
+      .then(user => {
+        this.user = user;
+
+        Topic.create({
+          title: "Winter Games",
+          description: "Post your Winter Games stories.",
+          posts: [{
+            title: "Snowball Fighting",
+            body: "So much snow!",
+            userId: this.user.id
+          }]
+        }, {
+          include: {
+            model: Post,
+            as: "posts"
+          }
+        })
+        .then(topic => {
+          this.post = topic.posts[0];
+          
+          Comment.create({
+            body: "This comment is alright.",
+            postId: this.post.id,
+            userId: this.user.id
+          })
+          .then(comment => {
+            this.comment = comment;
+            done();
+          })
+        })
+      })
+    });
+
+    it("should present a list of comments and posts a user has created", (done) => {
+      request.get(`${base}${this.user.id}`, (err, res, body) => {
+        expect(body).toContain("Snowball Fighting");
+        expect(body).toContain("This comment is alright.");
         done();
       })
     })
